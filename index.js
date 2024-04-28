@@ -1,8 +1,7 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const serverless = require('serverless-http')
+const serverless = require('serverless-http');
 const bodyParser = require('body-parser');
-
 require('dotenv').config();
 
 const app = express();
@@ -18,9 +17,13 @@ mongoose
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
-// Routes
-app.use('/.netlify/functions/auth', router);
-app.use('/.netlify/functions/tasks', router);
+// Importing and configuring the authentication function
+const authHandler = require('./functions/auth');
+app.use('/.netlify/functions/auth', authHandler.handler);
 
+// Importing and configuring the tasks function
+const tasksHandler = require('./functions/tasks');
+app.use('/.netlify/functions/tasks', tasksHandler.handler);
 
+// Export the app as the handler for Serverless framework
 module.exports.handler = serverless(app);
