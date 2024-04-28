@@ -19,11 +19,11 @@ mongoose
 
 // Importing and configuring the authentication function
 const authHandler = require('./functions/auth');
-app.use('/.netlify/functions/auth', authHandler.handler);
+app.use('/functions/auth', authHandler.handler);
 
 // Importing and configuring the tasks function
 const tasksHandler = require('./functions/tasks');
-app.use('/.netlify/functions/tasks', tasksHandler.handler);
+app.use('/functions/tasks', tasksHandler.handler);
 
 // Export the app as the handler for Serverless framework
 module.exports.handler = serverless(app);
