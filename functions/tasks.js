@@ -1,13 +1,11 @@
 const express = require('express');
-const serverless = require('serverless-http');
 const router = express.Router();
 const TaskDTO = require('../models/task.js');
 const authenticateToken = require('../middleware/middleware_auth.js');
 
-const app = express();
 
 // Create a new task
-router.post('/', authenticateToken, async (req, res) => {
+router.post('/',authenticateToken, async (req, res) => {
   try {
     const newTask = new TaskDTO({
       taskName: req.body.taskName,
@@ -24,7 +22,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 // Retrieve all tasks for a specific user
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/',authenticateToken, async (req, res) => {
   try {
     const tasks = await TaskDTO.find({ userId: req.user.id });
     res.json(tasks);
@@ -35,7 +33,7 @@ router.get('/', authenticateToken, async (req, res) => {
 });
 
 // Update a task
-router.put('/:id', authenticateToken, async (req, res) => {
+router.put('/:id',authenticateToken, async (req, res) => {
   try {
     let task = await TaskDTO.findById(req.params.id);
 
@@ -56,7 +54,7 @@ router.put('/:id', authenticateToken, async (req, res) => {
 });
 
 // Delete a task
-router.delete('/:id', authenticateToken, async (req, res) => {
+router.delete('/:id',authenticateToken, async (req, res) => {
   try {
     const task = await TaskDTO.findById(req.params.id);
 
@@ -72,8 +70,4 @@ router.delete('/:id', authenticateToken, async (req, res) => {
   }
 });
 
-// Use the router for the app
-app.use('/.netlify/functions/tasks', router);
-
-// Export the app as the handler for Serverless framework
-module.exports.handler = serverless(app);
+module.exports = router;

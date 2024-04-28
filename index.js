@@ -1,11 +1,12 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const serverless = require('serverless-http');
+const serverless = require('serverless-http')
 const bodyParser = require('body-parser');
+const router = require('./functions/tasks');
+
 require('dotenv').config();
 
 const app = express();
-const router = express.Router();
 
 // Body parser middleware
 app.use(bodyParser.json());
@@ -17,13 +18,17 @@ mongoose
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.log(err));
 
-// Importing and configuring the authentication function
-const authHandler = require('./functions/auth');
-app.use('/functions/auth', authHandler.handler);
+// Routes
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/tasks', require('./routes/tasks'));
+// app.use('/.netlify/functions/auth', router);
+// app.use('/.netlify/functions/tasks', router);
 
-// Importing and configuring the tasks function
-const tasksHandler = require('./functions/tasks');
-app.use('/functions/tasks', tasksHandler.handler);
 
-// Export the app as the handler for Serverless framework
-module.exports.handler = serverless(app);
+// module.exports.handler = serverless(app);
+
+
+
+const PORT = process.env.PORT || 5000;
+
+ app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
