@@ -1,32 +1,36 @@
-// routes/auth.js
 const express = require('express');
-const router = express.Router();
+const serverless = require('serverless-http');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const UserDTO = require('../models/user.js')
-
 const { check, validationResult } = require('express-validator');
+const User = require('../models/user');
 
-/******** REGISTRO USUARIO *********/
+const app = express();
+const router = express.Router();
+
+// Body parser middleware
+app.use(express.json());
+
+/******** REGISTRATION *********/
 router.post('/register', [
-  check('name', 'Campo obligatorio name').not().isEmpty(),
-  check('email', 'Campo obligatorio email').isEmail(),
-  check('password', 'Formato incorrecto contraseña (6 o más caracteres)').isLength({ min: 6 })
+  check('name', 'Name is required').not().isEmpty(),
+  check('email', 'Please include a valid email').isEmail(),
+  check('password', 'Please enter a password with 6 or more characters').isLength({ min: 6 })
 ], async (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { name, email, password } = req.body;
-
   try {
-    let user = await UserDTO.findOne({ email });
-    if (user) {
-      return res.status(400).json({ msg: 'Usuario ya registrado con el email especificado' });
-    } 
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
 
-    user = new UserDTO({
+    const { name, email, password } = req.body;
+
+    let user = await User.findOne({ email });
+    if (user) {
+      return res.status(400).json({ msg: 'User already exists' });
+    }
+
+    user = new User({
       name,
       email,
       password
@@ -37,11 +41,9 @@ router.post('/register', [
 
     await user.save();
 
-    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const accessToken = generateToken(user.id, process.env.JWT_SECRET, '15m');
+    const refreshToken = generateToken(user.id, process.env.JWT_REFRESH_SECRET);
 
-    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET);
-
-    // STATUSCODE 200
     res.json({ accessToken, refreshToken });
   } catch (err) {
     console.error(err.message);
@@ -49,24 +51,22 @@ router.post('/register', [
   }
 });
 
-/******** LOGIN USUARIO *********/
+/******** LOGIN *********/
 router.post('/login', [
-  check('email', 'Formato no valido email').isEmail(),
-  check('password', 'Campo obligatorio password').exists()
+  check('email', 'Please include a valid email').isEmail(),
+  check('password', 'Password is required').exists()
 ], async (req, res) => {
-  // Validation errors
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  // Destructuración body recibido por usuario
-  const { email, password } = req.body;
-
   try {
-    let user = await UserDTO.findOne({ email });
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      return res.status(400).json({ errors: errors.array() });
+    }
+
+    const { email, password } = req.body;
+
+    let user = await User.findOne({ email });
     if (!user) {
-      return res.status(400).json({ msg: 'Credenciales incorrectas' });
+      return res.status(400).json({ msg: 'Invalid Credentials' });
     }
 
     const isMatch = await bcrypt.compare(password, user.password);
@@ -74,11 +74,9 @@ router.post('/login', [
       return res.status(400).json({ msg: 'Invalid Credentials' });
     }
 
-    const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
+    const accessToken = generateToken(user.id, process.env.JWT_SECRET, '15m');
+    const refreshToken = generateToken(user.id, process.env.JWT_REFRESH_SECRET);
 
-    const refreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET);
-
-    // STATUSCODE 200
     res.json({ accessToken, refreshToken });
   } catch (err) {
     console.error(err.message);
@@ -86,22 +84,22 @@ router.post('/login', [
   }
 });
 
-/******** REFRESCAR TOKEN USUARIO *********/
+/******** REFRESH TOKEN *********/
 router.post('/refreshToken', async (req, res) => {
-  const refreshToken = req.body.refreshToken;
-
-  if (!refreshToken) {
-    return res.status(401).json({ msg: 'No refresh token provided' });
-  }
-
   try {
+    const { refreshToken } = req.body;
+
+    if (!refreshToken) {
+      return res.status(401).json({ msg: 'No refresh token provided' });
+    }
+
     jwt.verify(refreshToken, process.env.JWT_REFRESH_SECRET, (err, user) => {
       if (err) {
         return res.status(401).json({ msg: 'Invalid refresh token' });
       }
 
-      const accessToken = jwt.sign({ id: user.id }, process.env.JWT_SECRET, { expiresIn: '15m' });
-      const newRefreshToken = jwt.sign({ id: user.id }, process.env.JWT_REFRESH_SECRET);
+      const accessToken = generateToken(user.id, process.env.JWT_SECRET, '1h');
+      const newRefreshToken = generateToken(user.id, process.env.JWT_REFRESH_SECRET);
 
       res.json({ accessToken, refreshToken: newRefreshToken });
     });
@@ -111,4 +109,13 @@ router.post('/refreshToken', async (req, res) => {
   }
 });
 
-module.exports = router;
+// Helper function to generate JWT tokens
+function generateToken(userId, secret, expiresIn = '1h') {
+  return jwt.sign({ id: userId }, secret, { expiresIn });
+}
+
+// Use the router for the app
+app.use('/.netlify/functions/auth', router);
+
+// Export the app as the handler for Serverless framework
+module.exports.handler = serverless(app);
