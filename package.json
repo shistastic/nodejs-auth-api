@@ -1,0 +1,26 @@
+{
+  "name": "nodejs-auth-api",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "netlify deploy --prod"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@netlify/functions": "^2.6.0",
+    "@types/express": "^4.17.21",
+    "bcryptjs": "^2.4.3",
+    "body-parser": "^1.20.2",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-validator": "^7.0.1",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.2.3",
+    "netlify-cli": "^17.17.1",
+    "netlify-lambda": "^2.0.16",
+    "serverless-http": "^3.2.0"
+  }
+}
