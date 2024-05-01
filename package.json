@@ -20,8 +20,6 @@
     "express-validator": "^7.0.1",
     "jsonwebtoken": "^9.0.2",
     "mongoose": "^8.2.3",
-    "netlify-cli": "^17.17.1",
-    "netlify-lambda": "^2.0.16",
     "serverless-http": "^3.2.0"
   }
 }
