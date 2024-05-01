@@ -1,8 +1,6 @@
 const express = require('express');
 const mongoose = require('mongoose');
-const serverless = require('serverless-http')
 const bodyParser = require('body-parser');
-const router = require('./functions/tasks');
 
 require('dotenv').config();
 
