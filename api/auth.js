@@ -8,7 +8,7 @@ const UserDTO = require('../models/user.js')
 const { check, validationResult } = require('express-validator');
 
 /******** REGISTRO USUARIO *********/
-router.post('/register', [
+app.post('/register', [
   check('name', 'Campo obligatorio name').not().isEmpty(),
   check('email', 'Campo obligatorio email').isEmail(),
   check('password', 'Formato incorrecto contraseña (6 o más caracteres)').isLength({ min: 6 })
