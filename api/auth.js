@@ -1,12 +1,13 @@
-// routes/auth.js
+/** 
 const express = require('express');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UserDTO = require('../models/user.js')
+const app = require('../index'); 
 
 const { check, validationResult } = require('express-validator');
 
-/******** REGISTRO USUARIO *********/
+// REGISTRO USUARIO
 app.post('/register', [
   check('name', 'Campo obligatorio name').not().isEmpty(),
   check('email', 'Campo obligatorio email').isEmail(),
@@ -48,7 +49,7 @@ app.post('/register', [
   }
 });
 
-/******** LOGIN USUARIO *********/
+// LOGIN USUARIO
 app.post('/login', [
   check('email', 'Formato no valido email').isEmail(),
   check('password', 'Campo obligatorio password').exists()
@@ -85,7 +86,7 @@ app.post('/login', [
   }
 });
 
-/******** REFRESCAR TOKEN USUARIO *********/
+// REFRESCAR TOKEN USUARIO
 app.post('/refreshToken', async (req, res) => {
   const refreshToken = req.body.refreshToken;
 
@@ -109,4 +110,4 @@ app.post('/refreshToken', async (req, res) => {
     res.status(500).send('Server Error');
   }
 });
-
+*/
