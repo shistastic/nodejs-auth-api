@@ -27,7 +27,6 @@ const PORT = process.env.PORT || 4000;
 
  /**
  app.use('/api/auth', require("./api/auth"));
-
  app.use('/api/tasks', tasks);
  **/
 app.get('/hello', (req, res) => {
@@ -207,5 +206,3 @@ app.delete('/:id',authenticateToken, async (req, res) => {
 });
 
  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
-
- module.exports = app;
