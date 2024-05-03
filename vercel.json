@@ -10,6 +10,14 @@
       {
         "src": "/(.*)",
         "dest": "index.js"
+      },
+      {
+        "src": "/api/auth/(.*)",
+        "dest": "./api/auth.js"
+      },
+      {
+        "src": "/api/tasks/(.*)",
+        "dest": "./api/tasks.js"
       }
     ]
   }
