@@ -1,6 +1,5 @@
 // routes/auth.js
 const express = require('express');
-const router = express.Router();
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const UserDTO = require('../models/user.js')
@@ -50,7 +49,7 @@ app.post('/register', [
 });
 
 /******** LOGIN USUARIO *********/
-router.post('/login', [
+app.post('/login', [
   check('email', 'Formato no valido email').isEmail(),
   check('password', 'Campo obligatorio password').exists()
 ], async (req, res) => {
@@ -87,7 +86,7 @@ router.post('/login', [
 });
 
 /******** REFRESCAR TOKEN USUARIO *********/
-router.post('/refreshToken', async (req, res) => {
+app.post('/refreshToken', async (req, res) => {
   const refreshToken = req.body.refreshToken;
 
   if (!refreshToken) {
@@ -111,4 +110,3 @@ router.post('/refreshToken', async (req, res) => {
   }
 });
 
-module.exports = router;

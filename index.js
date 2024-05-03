@@ -3,11 +3,12 @@ const app = express();
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const UserDTO = require('./models/user.js')
+const TaskDTO = require('./models/task.js');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const authenticateToken = require('./middleware/middleware_auth.js');
 
 const { check, validationResult } = require('express-validator');
-
 
 require('dotenv').config();
 
@@ -24,10 +25,11 @@ mongoose
 // Routes
 const PORT = process.env.PORT || 4000;
 
- /*
+ 
  app.use('/api/auth', auth);
+/*
  app.use('/api/tasks', tasks);
-**/
+ **/
 app.get('/hello', (req, res) => {
   res.send('{"Hey this is my API running 🥳"}');
 });
@@ -141,6 +143,71 @@ app.post('/refreshToken', async (req, res) => {
 });
 
 
+// Create a new task
+app.post('/',authenticateToken, async (req, res) => {
+  try {
+    const newTask = new TaskDTO({
+      taskName: req.body.taskName,
+      taskDescription: req.body.taskDescription,
+      userId: req.user.id
+    });
+
+    const task = await newTask.save();
+    res.status(201).json(task);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Retrieve all tasks for a specific user
+app.get('/',authenticateToken, async (req, res) => {
+  try {
+    const tasks = await TaskDTO.find({ userId: req.user.id });
+    res.json(tasks);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Update a task
+app.put('/:id',authenticateToken, async (req, res) => {
+  try {
+    let task = await TaskDTO.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({ msg: 'Task not found' });
+    }
+
+    task.taskName = req.body.taskName || task.taskName;
+    task.taskDescription = req.body.taskDescription || task.taskDescription;
+    task.status = req.body.status || task.status;
+
+    task = await task.save();
+    res.json(task);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// Delete a task
+app.delete('/:id',authenticateToken, async (req, res) => {
+  try {
+    const task = await TaskDTO.findById(req.params.id);
+
+    if (!task) {
+      return res.status(404).json({ msg: 'Task not found' });
+    }
+
+    await task.deleteOne();
+    res.json({ msg: 'Task removed' });
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
 
 
  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
